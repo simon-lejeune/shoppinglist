@@ -28,4 +28,3 @@ jobs:
       - name: Run docformatter
         run: find -name "*.html" | xargs djhtml -t 2 -c
         working-directory: .
-
