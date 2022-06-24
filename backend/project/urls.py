@@ -20,8 +20,8 @@ from rest_framework import routers
 from shoppinglist.core import views
 
 router = routers.DefaultRouter()
-router.register(r"lists", views.ListViewSet)
-router.register(r"items", views.ItemViewSet)
+router.register(r"lists", views.ListViewSet, "api-lists")
+router.register(r"items", views.ItemViewSet, "api-items")
 
 urlpatterns = [
     path("", include(router.urls)),
