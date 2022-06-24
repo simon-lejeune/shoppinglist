@@ -25,7 +25,11 @@ SECRET_KEY = "django-insecure-uc(57i0mqby-egi&ns_(rj(uh-smif4^jaum#a06&ly5xbq4_s
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "localhost",
+    "shoppinglist.slap.agency",
+]
 
 
 # Application definition
