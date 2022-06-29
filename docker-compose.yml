@@ -6,9 +6,10 @@ services:
       context: .
     ports:
       - "8000:8000"
-    environment:
-      SECRET_KEY: "django-insecure-uc(57i0mqby-egi&ns_(rj(uh-smif4^jaum#a06&ly5xbq4_s"
     command: python manage.py runserver 0.0.0.0:8000
   test: &test
     <<: *default
+    environment:
+      SECRET_KEY: "django-insecure-uc(57i0mqby-egi&ns_(rj(uh-smif4^jaum#a06&ly5xbq4_s"
+      DATABASE_URL: "sqlite:////tmp/test.sqlite"
     command: python manage.py test
