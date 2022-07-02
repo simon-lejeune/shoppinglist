@@ -12,7 +12,9 @@ services:
       AWS_ACCESS_KEY_ID: ""
       AWS_SECRET_ACCESS_KEY: ""
       AWS_STORAGE_BUCKET_NAME: ""
-    command: python manage.py runserver 0.0.0.0:8000
+    command: sh -c "
+      python manage.py collectstatic --no-input &&
+      gunicorn project.wsgi --bind 0.0.0.0:8000 --workers 2"
   test: &test
     <<: *default
     environment:
