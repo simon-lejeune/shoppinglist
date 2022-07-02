@@ -14,7 +14,7 @@ services:
       AWS_STORAGE_BUCKET_NAME: ""
     command: sh -c "
       python manage.py collectstatic --no-input &&
-      gunicorn project.wsgi --bind 0.0.0.0:8000 --workers 2"
+      gunicorn project.wsgi --bind 0.0.0.0:8000 --workers 2 --log-file - --access-logfile - --log-level debug"
   test: &test
     <<: *default
     environment:
