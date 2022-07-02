@@ -70,3 +70,16 @@ jobs:
         service: ${{ env.ECS_SERVICE }}
         cluster: ${{ env.ECS_CLUSTER }}
         wait-for-service-stability: true
+
+    # get subnets
+    # aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=EC2ContainerService-shoppinglist-cluster | jq -r '.Subnets | map(.SubnetId) | join(",")'
+    - name: Run the migrations in an AWS ECS Task
+      if: github.ref == 'refs/heads/master'
+      run: |
+        aws ecs run-task \
+        --cluster $ECS_CLUSTER \
+        --task-definition shoppinglist-app-task \
+        --overrides file://.aws/run_task_migrate.json \
+        --count 1 \
+        --launch-type FARGATE \
+        --network-configuration "awsvpcConfiguration={subnets=[subnet-0f0fc49bb06e8a410,subnet-06b2e94a1505c7050],assignPublicIp=ENABLED}"

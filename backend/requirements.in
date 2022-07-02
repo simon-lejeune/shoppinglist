@@ -1,4 +1,6 @@
+boto3
 django
 djangorestframework
 django-environ
+django-storages
 psycopg2
