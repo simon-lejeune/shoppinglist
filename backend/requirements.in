@@ -3,4 +3,5 @@ django
 djangorestframework
 django-environ
 django-storages
+gunicorn
 psycopg2
