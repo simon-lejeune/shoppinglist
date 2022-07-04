@@ -26,6 +26,7 @@ class ApiTestCase(APITestCase):
         response = self.client.get(url, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["name"], "List1")
+        self.assertEqual(response.data["id"], list1.id)
 
     def test_post_1(self):
         self.assertEqual(List.objects.count(), 0)
