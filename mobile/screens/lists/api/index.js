@@ -7,3 +7,7 @@ export const GetLists = (signal) => {
 export const CreateList = (name) => {
   return restClient.post('/lists/', { name });
 };
+
+export const DeleteList = (listId) => {
+  return restClient.delete(`/lists/${listId}/`);
+};
