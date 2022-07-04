@@ -1,39 +1,29 @@
 import { StatusBar } from 'expo-status-bar';
 import * as React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { ActivityIndicator, Button, Dialog, FAB, Portal, TextInput } from 'react-native-paper';
+import { ActivityIndicator } from 'react-native-paper';
 import { ValidationError } from 'yup';
 
-import { GetLists, CreateList } from './api';
-import { ListsCards } from './components';
+import { GetLists, CreateList, DeleteList } from './api';
+import { AddList, ListsCards } from './components';
 import Context from './context';
 import { ListsModel } from './models';
 
 export const Lists = () => {
+  // --------------------------------------------------------------------------
+  // Store
+  // --------------------------------------------------------------------------
   const [loading, setLoading] = React.useState(true);
   const [lists, setLists] = React.useState([]);
 
-  const [visible, setVisible] = React.useState(false);
-  const [newListName, setNewListName] = React.useState('');
-  const showDialog = () => setVisible(true);
-  const hideDialog = () => setVisible(false);
-  const onCreateDialog = async () => {
-    setLoading(true);
+  const refreshLists = async (signal) => {
+    let newLists = [];
     try {
-      await CreateList(newListName);
-      setNewListName('');
-      hideDialog();
-    } catch (err) {
-      console.log(err);
-      setLoading(false);
-      return;
-    }
-    try {
-      const listsRaw = await GetLists();
-      const lists = await ListsModel.validate(listsRaw.data, {
+      const listsRaw = await GetLists(signal);
+      newLists = await ListsModel.validate(listsRaw.data, {
         stripUnknown: true,
       });
-      setLists(lists);
+      setLists(newLists);
     } catch (err) {
       if (err instanceof ValidationError) {
         console.log('response data invalid');
@@ -41,7 +31,25 @@ export const Lists = () => {
         console.log(err);
       }
     } finally {
-      setLoading(false);
+      setLists(newLists);
+    }
+  };
+
+  const deleteList = async (listId) => {
+    try {
+      await DeleteList(listId);
+      await refreshLists();
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const addList = async (listName) => {
+    try {
+      await CreateList(listName);
+      await refreshLists();
+    } catch (err) {
+      console.log(err);
     }
   };
 
@@ -50,52 +58,39 @@ export const Lists = () => {
     const abortController = new AbortController();
     const signal = abortController.signal;
     (async function fetchData() {
-      try {
-        const listsRaw = await GetLists(signal);
-        const lists = await ListsModel.validate(listsRaw.data, {
-          stripUnknown: true,
-        });
-        setLists(lists);
-      } catch (err) {
-        if (err instanceof ValidationError) {
-          console.log('yup error');
-        } else {
-          console.log(err);
-        }
-      } finally {
-        setLoading(false);
-      }
+      setLoading(true);
+      await refreshLists(signal);
+      setLoading(false);
     })();
     return () => {
       abortController.abort();
     };
   }, []);
 
+  const context = {
+    lists,
+    actions: {
+      refreshLists,
+      addList,
+      deleteList,
+      setLoading,
+    },
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar style="auto" />
-      {loading && <ActivityIndicator animating />}
-      {lists.length ? (
-        <Context.Provider value={{ lists }}>
-          <ListsCards />
-        </Context.Provider>
+
+      <Context.Provider value={context}>
+        <ListsCards />
+        <AddList />
+      </Context.Provider>
+
+      {loading ? (
+        <View style={styles.loading}>
+          <ActivityIndicator animating size="large" />
+        </View>
       ) : null}
-      <FAB icon="plus" style={styles.fab} onPress={showDialog} />
-      <Portal>
-        <Dialog visible={visible} onDismiss={hideDialog}>
-          <Dialog.Title>Create a list</Dialog.Title>
-          <Dialog.Content>
-            <TextInput
-              label="my list name"
-              value={newListName}
-              onChangeText={(text) => setNewListName(text)}
-            />
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={onCreateDialog}>Create</Button>
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
     </View>
   );
 };
@@ -104,13 +99,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  loading: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  fab: {
-    position: 'absolute',
-    margin: 16,
-    right: 0,
-    bottom: 0,
+    opacity: 0.5,
+    backgroundColor: 'black',
   },
 });
