@@ -2,10 +2,12 @@ import { StatusBar } from 'expo-status-bar';
 import * as React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Button, Dialog, FAB, Portal, TextInput } from 'react-native-paper';
+import { ValidationError } from 'yup';
 
 import { GetLists, CreateList } from './api';
 import { ListsCards } from './components';
 import Context from './context';
+import { ListsModel } from './models';
 
 export const Lists = () => {
   const [loading, setLoading] = React.useState(true);
@@ -27,29 +29,46 @@ export const Lists = () => {
       return;
     }
     try {
-      const res = await GetLists();
-      setLists(res.data);
+      const listsRaw = await GetLists();
+      const lists = await ListsModel.validate(listsRaw.data, {
+        stripUnknown: true,
+      });
+      setLists(lists);
     } catch (err) {
-      console.log(err);
+      if (err instanceof ValidationError) {
+        console.log('response data invalid');
+      } else {
+        console.log(err);
+      }
     } finally {
       setLoading(false);
     }
   };
 
   React.useEffect(() => {
-    setLoading(true);
-    GetLists()
-      .then(
-        (res) => {
-          setLists(res.data);
-        },
-        (err) => {
+    // eslint-disable-next-line no-undef
+    const abortController = new AbortController();
+    const signal = abortController.signal;
+    (async function fetchData() {
+      try {
+        const listsRaw = await GetLists(signal);
+        const lists = await ListsModel.validate(listsRaw.data, {
+          stripUnknown: true,
+        });
+        setLists(lists);
+      } catch (err) {
+        if (err instanceof ValidationError) {
+          console.log('yup error');
+        } else {
           console.log(err);
         }
-      )
-      .finally(() => {
+      } finally {
         setLoading(false);
-      });
+      }
+    })();
+    return () => {
+      abortController.abort();
+    };
   }, []);
 
   return (
