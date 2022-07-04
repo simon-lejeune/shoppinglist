@@ -1,7 +1,7 @@
 import { restClient } from '../../../api';
 
-export const GetLists = () => {
-  return restClient.get('/lists/');
+export const GetLists = (signal) => {
+  return restClient.get('/lists/', { signal });
 };
 
 export const CreateList = (name) => {
