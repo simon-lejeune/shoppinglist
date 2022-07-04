@@ -7,12 +7,11 @@ export const ListsCards = () => {
   const { lists } = React.useContext(Context);
 
   return (
-      <View style={styles.container}>
-
-        {lists.map(({name}) => (
-          <Text key={name}>{name}</Text>
-        ))}
-      </View>
+    <View style={styles.container}>
+      {lists.map(({ name }) => (
+        <Text key={name}>{name}</Text>
+      ))}
+    </View>
   );
 };
 
