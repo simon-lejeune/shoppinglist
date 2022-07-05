@@ -28,6 +28,19 @@ class ApiTestCase(APITestCase):
         self.assertEqual(response.data["name"], "List1")
         self.assertEqual(response.data["id"], list1.id)
 
+    def test_get_4(self):
+        list1 = List(name="List1")
+        list1.save()
+        item1 = Item(content="item1", list_id=list1)
+        item1.save()
+        url = reverse("api-lists-detail", kwargs={"pk": list1.id})
+        url += "items" + "/"
+        response = self.client.get(url, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data[0]["id"], item1.id)
+        self.assertEqual(response.data[0]["content"], item1.content)
+        self.assertEqual(response.data[0]["list_id"], list1.id)
+
     def test_post_1(self):
         self.assertEqual(List.objects.count(), 0)
         url = reverse("api-lists-list")

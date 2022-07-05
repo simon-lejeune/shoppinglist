@@ -1,6 +1,8 @@
 from .models import Item, List
 from rest_framework import viewsets
 from rest_framework import permissions
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from .serializers import ItemSerializer, ListSerializer
 
 
@@ -12,6 +14,12 @@ class ListViewSet(viewsets.ModelViewSet):
     queryset = List.objects.all()
     serializer_class = ListSerializer
     # permission_classes = [permissions.IsAuthenticated]
+
+    @action(detail=True)
+    def items(self, request, pk):
+        items = Item.objects.filter(list_id=pk)
+        serializer = ItemSerializer(items, many=True)
+        return Response(serializer.data)
 
 
 class ItemViewSet(viewsets.ModelViewSet):
