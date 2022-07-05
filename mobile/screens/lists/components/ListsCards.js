@@ -13,9 +13,17 @@ export const ListsCards = () => {
     actions.setLoading(false);
   };
 
+  const onPressCard = (listId) => {
+    actions.navigateToItems(listId);
+  };
+
   const renderList = ({ item: list }) => {
     return (
-      <Card style={styles.card}>
+      <Card
+        style={styles.card}
+        onPress={() => {
+          onPressCard(list.id);
+        }}>
         <Card.Title title={list.name} />
         <Card.Content>
           <Paragraph>x items</Paragraph>

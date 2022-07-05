@@ -11,3 +11,7 @@ export const CreateList = (name) => {
 export const DeleteList = (listId) => {
   return restClient.delete(`/lists/${listId}/`);
 };
+
+export const GetItems = (listId) => {
+  return restClient.get(`/lists/${listId}/items/`);
+};
