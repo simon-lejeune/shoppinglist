@@ -4,23 +4,40 @@ import { StyleSheet, View } from 'react-native';
 import { ActivityIndicator } from 'react-native-paper';
 import { ValidationError } from 'yup';
 
-import { GetLists, CreateList, DeleteList } from './api';
-import { AddList, ListsCards } from './components';
+import { ListModel } from '../lists/models';
+import { GetList, GetItems } from './api';
+import { ItemsList } from './components';
 import Context from './context';
-import { ListsModel } from './models';
+import { ItemsModel } from './models';
 
-export const Lists = ({ navigation }) => {
+export const Items = ({ route, navigation }) => {
+  const { listId } = route.params;
   const [loading, setLoading] = React.useState(true);
-  const [lists, setLists] = React.useState([]);
-  const navigateToItems = (listId) => {
-    return navigation.navigate('Items', { listId });
+  const [list, setList] = React.useState([]);
+  const [items, setItems] = React.useState([]);
+
+  const getList = async (listId, signal) => {
+    let newList = null;
+    try {
+      const listRaw = await GetList(listId, signal);
+      newList = await ListModel.validate(listRaw.data, {
+        stripUnknown: true,
+      });
+    } catch (err) {
+      if (err instanceof ValidationError) {
+        console.log('response data invalid');
+      } else {
+        console.log(err);
+      }
+      setList(newList);
+    }
   };
 
-  const refreshLists = async (signal) => {
-    let newLists = [];
+  const getItems = async (listId, signal) => {
+    let newItems = [];
     try {
-      const listsRaw = await GetLists(signal);
-      newLists = await ListsModel.validate(listsRaw.data, {
+      const itemsRaw = await GetItems(listId, signal);
+      newItems = await ItemsModel.validate(itemsRaw.data, {
         stripUnknown: true,
       });
     } catch (err) {
@@ -30,25 +47,8 @@ export const Lists = ({ navigation }) => {
         console.log(err);
       }
     } finally {
-      setLists(newLists);
-    }
-  };
-
-  const deleteList = async (listId) => {
-    try {
-      await DeleteList(listId);
-      await refreshLists();
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  const addList = async (listName) => {
-    try {
-      await CreateList(listName);
-      await refreshLists();
-    } catch (err) {
-      console.log(err);
+      console.log(newItems);
+      setItems(newItems);
     }
   };
 
@@ -58,21 +58,35 @@ export const Lists = ({ navigation }) => {
     const signal = abortController.signal;
     (async function fetchData() {
       setLoading(true);
-      await refreshLists(signal);
+      await getList(listId, signal);
       setLoading(false);
     })();
     return () => {
       abortController.abort();
     };
-  }, []);
+  }, [listId]);
+
+  React.useEffect(() => {
+    console.log('fetching items');
+    // eslint-disable-next-line no-undef
+    const abortController = new AbortController();
+    const signal = abortController.signal;
+    (async function fetchData() {
+      setLoading(true);
+      await getItems(listId, signal);
+      setLoading(false);
+    })();
+    return () => {
+      abortController.abort();
+    };
+  }, [listId]);
 
   const context = {
-    lists,
+    list,
+    items,
     actions: {
-      navigateToItems,
-      refreshLists,
-      addList,
-      deleteList,
+      getList,
+      getItems,
       setLoading,
     },
   };
@@ -82,8 +96,7 @@ export const Lists = ({ navigation }) => {
       <StatusBar style="auto" />
 
       <Context.Provider value={context}>
-        <ListsCards />
-        <AddList />
+        <ItemsList />
       </Context.Provider>
 
       {loading ? (
