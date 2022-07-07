@@ -12,8 +12,8 @@ import { ListsModel } from './models';
 export const Lists = ({ navigation }) => {
   const [loading, setLoading] = React.useState(true);
   const [lists, setLists] = React.useState([]);
-  const navigateToItems = (listId) => {
-    return navigation.navigate('Items', { listId });
+  const navigateToItems = (listId, listName) => {
+    return navigation.navigate('Items', { listId, listName });
   };
 
   const refreshLists = async (signal) => {
@@ -32,6 +32,7 @@ export const Lists = ({ navigation }) => {
     } finally {
       setLists(newLists);
     }
+    return newLists;
   };
 
   const deleteList = async (listId) => {
@@ -44,12 +45,20 @@ export const Lists = ({ navigation }) => {
   };
 
   const addList = async (listName) => {
+    let newListId;
+    let newLists = [];
     try {
-      await CreateList(listName);
-      await refreshLists();
+      const newListRaw = await CreateList(listName);
+      newListId = newListRaw.data.id;
+      newLists = await refreshLists();
     } catch (err) {
       console.log(err);
     }
+    if (newListId) {
+      const l = newLists.find((l) => l.id === newListId);
+      return l;
+    }
+    return null;
   };
 
   React.useEffect(() => {

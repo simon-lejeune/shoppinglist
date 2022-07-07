@@ -13,8 +13,8 @@ export const ListsCards = () => {
     actions.setLoading(false);
   };
 
-  const onPressCard = (listId) => {
-    actions.navigateToItems(listId);
+  const onPressCard = (listId, listName) => {
+    actions.navigateToItems(listId, listName);
   };
 
   const renderList = ({ item: list }) => {
@@ -22,7 +22,7 @@ export const ListsCards = () => {
       <Card
         style={styles.card}
         onPress={() => {
-          onPressCard(list.id);
+          onPressCard(list.id, list.name);
         }}>
         <Card.Title title={list.name} />
         <Card.Content>
@@ -60,8 +60,9 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   card: {
-    margin: 10,
+    marginBottom: 10,
     padding: 10,
     backgroundColor: 'lightblue',
+    width: '100%',
   },
 });

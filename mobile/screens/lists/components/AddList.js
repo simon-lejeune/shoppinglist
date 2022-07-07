@@ -15,9 +15,10 @@ export const AddList = () => {
   const onCreateDialog = async () => {
     actions.setLoading(true);
     hideDialog();
-    await actions.addList(newListName);
+    const newList = await actions.addList(newListName);
     setNewListName('');
     actions.setLoading(false);
+    actions.navigateToItems(newList.id, newList.name);
   };
 
   return (
