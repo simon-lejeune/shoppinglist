@@ -5,16 +5,22 @@ import { ActivityIndicator } from 'react-native-paper';
 import { ValidationError } from 'yup';
 
 import { ListModel } from '../lists/models';
-import { GetList, GetItems } from './api';
+import { GetList, GetItems, AddItem } from './api';
 import { ItemsList } from './components';
 import Context from './context';
 import { ItemsModel } from './models';
 
 export const Items = ({ route, navigation }) => {
-  const { listId } = route.params;
+  const { listId, listName } = route.params;
   const [loading, setLoading] = React.useState(true);
   const [list, setList] = React.useState([]);
   const [items, setItems] = React.useState([]);
+
+  React.useEffect(() => {
+    if (listName) {
+      navigation.setOptions({ title: listName });
+    }
+  }, [listName]);
 
   const getList = async (listId, signal) => {
     let newList = null;
@@ -47,27 +53,34 @@ export const Items = ({ route, navigation }) => {
         console.log(err);
       }
     } finally {
-      console.log(newItems);
       setItems(newItems);
     }
   };
 
-  React.useEffect(() => {
-    // eslint-disable-next-line no-undef
-    const abortController = new AbortController();
-    const signal = abortController.signal;
-    (async function fetchData() {
-      setLoading(true);
-      await getList(listId, signal);
-      setLoading(false);
-    })();
-    return () => {
-      abortController.abort();
-    };
-  }, [listId]);
+  const addItem = async (content) => {
+    try {
+      await AddItem(listId, content);
+    } catch (err) {
+      console.log(err);
+    }
+    await getItems(listId);
+  };
+
+  // React.useEffect(() => {
+  //   // eslint-disable-next-line no-undef
+  //   const abortController = new AbortController();
+  //   const signal = abortController.signal;
+  //   (async function fetchData() {
+  //     setLoading(true);
+  //     await getList(listId, signal);
+  //     setLoading(false);
+  //   })();
+  //   return () => {
+  //     abortController.abort();
+  //   };
+  // }, [listId]);
 
   React.useEffect(() => {
-    console.log('fetching items');
     // eslint-disable-next-line no-undef
     const abortController = new AbortController();
     const signal = abortController.signal;
@@ -87,6 +100,7 @@ export const Items = ({ route, navigation }) => {
     actions: {
       getList,
       getItems,
+      addItem,
       setLoading,
     },
   };
