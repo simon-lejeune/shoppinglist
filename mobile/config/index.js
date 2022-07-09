@@ -1,1 +1,1 @@
-export const API_URL = 'https://shoppinglist.slap.agency';
+export const API_URL = process.env.APIURL;
