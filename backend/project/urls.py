@@ -17,14 +17,13 @@ from django.contrib import admin
 from django.urls import include, path
 from rest_framework import routers
 
-from shoppinglist.core import views
+from shoppinglist.core import views as core_views
 
 router = routers.DefaultRouter()
-router.register(r"lists", views.ListViewSet, "api-lists")
-router.register(r"items", views.ItemViewSet, "api-items")
+router.register(r"lists", core_views.ListViewSet, "api-lists")
+router.register(r"items", core_views.ItemViewSet, "api-items")
 
 urlpatterns = [
-    path("", include(router.urls)),
+    path("api/", include(router.urls)),
     path("admin/", admin.site.urls),
-    # path('api/v1/', include('rest_framework.urls', namespace='rest_framework'))
 ]

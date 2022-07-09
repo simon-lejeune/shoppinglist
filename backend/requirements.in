@@ -1,6 +1,7 @@
 boto3
 django
 djangorestframework
+django-cors-headers
 django-environ
 django-storages
 gunicorn
