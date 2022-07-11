@@ -1,0 +1,71 @@
+name: Mobile
+
+on:
+  pull_request:
+    paths:
+      - 'mobile/**'
+  push:
+    paths:
+      - 'mobile/**'
+    branches:
+      - master
+
+env:
+  AWS_REGION: eu-west-1
+  ECR_REPOSITORY: ecr_shoppinglist
+  $AWS_S3_BUCKET: shoppinglist.slap.agency
+
+jobs:
+  test:
+    name: Build app, deploy
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Setup Node
+      uses: actions/setup-node@v2
+      with:
+        node-version: 16.x
+        cache: yarn
+        cache-dependency-path: mobile/yarn.lock
+
+    - name: Setup Expo
+      uses: expo/expo-github-action@v7
+      with:
+        expo-version: latest
+        token: ${{ secrets.EXPO_TOKEN }}
+
+    - name: Install dependencies
+      run: |
+        cd mobile
+        yarn install
+
+    - name: Create env file
+      run: |
+        cd mobile
+        touch .env
+        echo APIURL="https://shoppinglist.slap.agency/api" >> .env
+        cat .env
+
+    - name: Build web release
+      run: |
+        cd mobile
+        expo build:web
+
+    - name: Configure AWS credentials
+      if: github.ref == 'refs/heads/master'
+      uses: aws-actions/configure-aws-credentials@13d241b293754004c80624b5567555c4a39ffbe3
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Upload dist files to aws s3
+      if: github.ref == 'refs/heads/master'
+      env:
+        SOURCE_DIR: 'web-build'
+      run: |
+        cd mobile
+        aws s3 sync --acl public-read --delete $SOURCE_DIR s3://$AWS_S3_BUCKET
