@@ -6,6 +6,7 @@ import Context from '../context';
 
 export const ItemsList = () => {
   const { items, actions } = React.useContext(Context);
+
   const [newItemContent, setNewItemContent] = React.useState('');
 
   const onSubmit = async () => {

@@ -13,7 +13,7 @@ on:
 env:
   AWS_REGION: eu-west-1
   ECR_REPOSITORY: ecr_shoppinglist
-  $AWS_S3_BUCKET: shoppinglist.slap.agency
+  AWS_S3_BUCKET: shoppinglist.slap.agency
 
 jobs:
   test:
@@ -68,4 +68,4 @@ jobs:
         SOURCE_DIR: 'web-build'
       run: |
         cd mobile
-        aws s3 sync --acl public-read --delete $SOURCE_DIR s3://${{ env.AWS_S3_BUCKET }}
+        aws s3 sync --acl public-read --delete $SOURCE_DIR s3://$AWS_S3_BUCKET
