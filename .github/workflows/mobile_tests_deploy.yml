@@ -14,6 +14,7 @@ env:
   AWS_REGION: eu-west-1
   ECR_REPOSITORY: ecr_shoppinglist
   AWS_S3_BUCKET: shoppinglist.slap.agency
+  DISTRIBUTION_ID: E1USVLW3AM1BNY
 
 jobs:
   test:
@@ -69,3 +70,7 @@ jobs:
       run: |
         cd mobile
         aws s3 sync --delete $SOURCE_DIR s3://$AWS_S3_BUCKET
+
+    - name: Refresh cloudfront
+      if: github.ref == 'refs/heads/master'
+      run: aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths "/*" --no-cli-pager
