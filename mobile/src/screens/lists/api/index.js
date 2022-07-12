@@ -1,7 +1,11 @@
 import { restClient } from '@app/api';
 
-export const GetLists = (signal) => {
-  return restClient.get('/lists/', { signal });
+import { ListsModel } from '../models';
+
+export const GetLists = () => {
+  return restClient.get('/lists/').then((res) => {
+    return ListsModel.validate(res.data, { stripUnknown: true });
+  });
 };
 
 export const CreateList = (name) => {

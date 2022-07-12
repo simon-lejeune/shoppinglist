@@ -1,133 +1,124 @@
+import { Error, Loading, Divider } from '@app/components';
+import { useRefreshByUser } from '@app/hooks/useRefreshByUser';
+import { useRefreshOnFocus } from '@app/hooks/useRefreshOnFocus';
 import { StatusBar } from 'expo-status-bar';
 import * as React from 'react';
-import { StyleSheet, View } from 'react-native';
-import { ActivityIndicator, Snackbar } from 'react-native-paper';
-import { ValidationError } from 'yup';
+import { StyleSheet, View, FlatList, RefreshControl, Text } from 'react-native';
+import { Button, Dialog, FAB, Portal, TextInput, TouchableRipple } from 'react-native-paper';
+import { useMutation, useQuery, useQueryClient } from 'react-query';
 
-import { GetLists, CreateList, DeleteList } from './api';
-import { AddList, ListsCards } from './components';
-import Context from './context';
-import { ListsModel } from './models';
+import { GetLists, DeleteList, CreateList } from './api';
 
 export const Lists = ({ navigation }) => {
-  const [loading, setLoading] = React.useState(true);
-  const [lists, setLists] = React.useState([]);
-  const navigateToItems = (listId, listName) => {
-    return navigation.navigate('Items', { listId, listName });
-  };
+  const queryClient = useQueryClient();
 
-  const refreshLists = async (signal) => {
-    let newLists = [];
-    try {
-      const listsRaw = await GetLists(signal);
-      newLists = await ListsModel.validate(listsRaw.data, {
-        stripUnknown: true,
-      });
-    } catch (err) {
-      if (err instanceof ValidationError) {
-        console.log('response data invalid');
-        setError(err.message);
-      } else {
-        console.log(err);
-        setError(err.message);
-      }
-    } finally {
-      setLists(newLists);
-    }
-    return newLists;
-  };
+  // List fetch
+  const { loading, error, data, refetch } = useQuery('lists', GetLists);
+  const { isRefetchingByUser, refetchByUser } = useRefreshByUser(refetch);
+  useRefreshOnFocus(refetch);
 
-  const deleteList = async (listId) => {
-    try {
-      await DeleteList(listId);
-      await refreshLists();
-    } catch (err) {
-      console.log(err);
-      setError(err.message);
-    }
-  };
-
-  const addList = async (listName) => {
-    let newListId;
-    let newLists = [];
-    try {
-      const newListRaw = await CreateList(listName);
-      newListId = newListRaw.data.id;
-      newLists = await refreshLists();
-    } catch (err) {
-      console.log(err);
-      setError(err.message);
-    }
-    if (newListId) {
-      const l = newLists.find((l) => l.id === newListId);
-      return l;
-    }
-    return null;
-  };
-
-  React.useEffect(() => {
-    // eslint-disable-next-line no-undef
-    const abortController = new AbortController();
-    const signal = abortController.signal;
-    (async function fetchData() {
-      setLoading(true);
-      await refreshLists(signal);
-      setLoading(false);
-    })();
-    return () => {
-      abortController.abort();
-    };
-  }, []);
-
-  const context = {
-    lists,
-    actions: {
-      navigateToItems,
-      refreshLists,
-      addList,
-      deleteList,
-      setLoading,
+  // List deletion
+  const deleteList = useMutation(DeleteList, {
+    onSuccess: () => {
+      queryClient.invalidateQueries(['lists']);
     },
-  };
+  });
+  const onDeleteList = React.useCallback(
+    (listId) => {
+      deleteList.mutate(listId);
+    },
+    [deleteList]
+  );
 
-  // tmp: error snack bar
-  // need to do much better here
+  // List creation
   const [visible, setVisible] = React.useState(false);
-  const [error, setError] = React.useState('');
-  const onDismissSnackBar = () => {
-    setVisible(false);
-    setError('');
-  };
+  const [newListName, setNewListName] = React.useState('');
+  const showDialog = () => setVisible(true);
+  const hideDialog = () => setVisible(false);
+  const createList = useMutation(CreateList, {
+    onSuccess: () => {
+      queryClient.invalidateQueries(['lists']);
+    },
+  });
+  const onCreateDialog = React.useCallback(() => {
+    hideDialog();
+    createList.mutate(newListName);
+    setNewListName('');
+  }, [createList]);
+
+  // UI
+  const onPressList = React.useCallback(
+    (listId, listName) => {
+      navigation.navigate('Items', { listId, listName });
+    },
+    [navigation]
+  );
+  const renderList = React.useCallback(
+    ({ item: list }) => {
+      return (
+        <TouchableRipple
+          onPress={() => onPressList(list.id, list.name)}
+          style={styles.cardContainer}
+          rippleColor="rgba(0, 0, 0, .32)"
+          accessibilityRole="button">
+          <View style={styles.card}>
+            <View style={styles.titleBlock}>
+              <Text style={styles.title}>{list.name}</Text>
+            </View>
+            <View style={styles.buttonsBlock}>
+              <Button
+                onPress={() => {
+                  onDeleteList(list.id);
+                }}>
+                Delete
+              </Button>
+            </View>
+          </View>
+        </TouchableRipple>
+      );
+    },
+    [onPressList, onDeleteList]
+  );
+
+  if (loading) {
+    return <Loading />;
+  }
+  if (error) {
+    return <Error message={error.message} />;
+  }
 
   return (
     <View style={styles.container}>
       <StatusBar style="auto" />
 
-      <Snackbar
-        visible={visible || error}
-        onDismiss={onDismissSnackBar}
-        theme={{
-          colors: {
-            surface: 'red',
-            background: 'white',
-            backdrop: 'white',
-            primary: 'white',
-            accent: 'white',
-          },
-        }}>
-        {error}
-      </Snackbar>
+      <FlatList
+        data={data}
+        renderItem={renderList}
+        keyExtractor={(item) => item.id}
+        refreshControl={
+          <RefreshControl refreshing={isRefetchingByUser} onRefresh={refetchByUser} />
+        }
+        numColumns={1}
+        ItemSeparatorComponent={() => <Divider />}
+      />
 
-      <Context.Provider value={context}>
-        <ListsCards />
-        <AddList />
-      </Context.Provider>
+      <FAB icon="plus" style={styles.fab} onPress={showDialog} />
 
-      {loading ? (
-        <View style={styles.loading}>
-          <ActivityIndicator animating size="large" />
-        </View>
-      ) : null}
+      <Portal>
+        <Dialog visible={visible} onDismiss={hideDialog}>
+          <Dialog.Title>Create a list</Dialog.Title>
+          <Dialog.Content>
+            <TextInput
+              label="my list name"
+              value={newListName}
+              onChangeText={(text) => setNewListName(text)}
+            />
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={onCreateDialog}>Create</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
     </View>
   );
 };
@@ -135,17 +126,31 @@ export const Lists = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    justifyContent: 'center',
+  },
+  cardContainer: {
     backgroundColor: '#fff',
   },
-  loading: {
+  card: {
+    flexDirection: 'row',
+  },
+  titleBlock: {
+    marginTop: 'auto',
+    marginBottom: 'auto',
+    flex: 1,
+    padding: 16,
+  },
+  buttonsBlock: {
+    flex: 0,
+    padding: 16,
+  },
+  title: {
+    fontSize: 18,
+  },
+  fab: {
     position: 'absolute',
-    left: 0,
+    margin: 16,
     right: 0,
-    top: 0,
     bottom: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-    opacity: 0.5,
-    backgroundColor: 'black',
   },
 });
