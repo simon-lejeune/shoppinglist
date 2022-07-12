@@ -33,11 +33,10 @@ Run the server
 Run the server with Docker
 ```
 docker-compose run --service-ports app
-docker ps # to get CONTAINER_ID
-docker exec -it CONTAINER_ID /bin/sh
-python manage.py collectstatic --no-input
 ```
 
 ## Dependencies
 
 We use [pip-tools](https://pypi.org/project/pip-tools/).
+Add the new dependency in `requirements.in` and then run `pip-compile requirements.in`.
+Finally, run `pip install -r requirements.txt`.
