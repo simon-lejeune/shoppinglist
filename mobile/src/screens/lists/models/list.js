@@ -1,6 +1,5 @@
 import { array, object, string, date, number } from 'yup';
 
-
 export const ListModel = object({
   id: number().required(),
   name: string().required(),

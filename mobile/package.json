@@ -7,7 +7,13 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "eject": "expo eject"
+    "eject": "expo eject",
+    "lint:check": "eslint --ext '.js,.ts,.tsx' .",
+    "lint:fix": "yarn lint --fix",
+    "prettier": "prettier \"{.,src,src/**}/*.{md,js,jsx,ts,tsx,json}\"",
+    "prettier:check": "yarn prettier -c",
+    "prettier:fix": "yarn prettier -w",
+    "dev:check": "yarn prettier:check & yarn lint:check"
   },
   "dependencies": {
     "@react-navigation/native": "^6.0.10",
