@@ -1,7 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import * as React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { ActivityIndicator } from 'react-native-paper';
+import { ActivityIndicator, Snackbar } from 'react-native-paper';
 import { ValidationError } from 'yup';
 
 import { GetLists, CreateList, DeleteList } from './api';
@@ -26,8 +26,10 @@ export const Lists = ({ navigation }) => {
     } catch (err) {
       if (err instanceof ValidationError) {
         console.log('response data invalid');
+        setError(err.message);
       } else {
         console.log(err);
+        setError(err.message);
       }
     } finally {
       setLists(newLists);
@@ -41,6 +43,7 @@ export const Lists = ({ navigation }) => {
       await refreshLists();
     } catch (err) {
       console.log(err);
+      setError(err.message);
     }
   };
 
@@ -53,6 +56,7 @@ export const Lists = ({ navigation }) => {
       newLists = await refreshLists();
     } catch (err) {
       console.log(err);
+      setError(err.message);
     }
     if (newListId) {
       const l = newLists.find((l) => l.id === newListId);
@@ -86,9 +90,33 @@ export const Lists = ({ navigation }) => {
     },
   };
 
+  // tmp: error snack bar
+  // need to do much better here
+  const [visible, setVisible] = React.useState(false);
+  const [error, setError] = React.useState('');
+  const onDismissSnackBar = () => {
+    setVisible(false);
+    setError('');
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar style="auto" />
+
+      <Snackbar
+        visible={visible || error}
+        onDismiss={onDismissSnackBar}
+        theme={{
+          colors: {
+            surface: 'red',
+            background: 'white',
+            backdrop: 'white',
+            primary: 'white',
+            accent: 'white',
+          },
+        }}>
+        {error}
+      </Snackbar>
 
       <Context.Provider value={context}>
         <ListsCards />
