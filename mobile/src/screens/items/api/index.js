@@ -1,4 +1,4 @@
-import { restClient } from '../../../api';
+import { restClient } from '@app/api';
 
 export const GetList = (listId, signal) => {
   return restClient.get(`/lists/${listId}/`, { signal });
