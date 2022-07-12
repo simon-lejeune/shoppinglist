@@ -18,6 +18,8 @@ export const AddList = () => {
     const newList = await actions.addList(newListName);
     setNewListName('');
     actions.setLoading(false);
+    // missing handling of error
+    //
     actions.navigateToItems(newList.id, newList.name);
   };
 
