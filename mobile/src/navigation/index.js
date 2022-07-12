@@ -1,7 +1,6 @@
+import { Items } from '@app/screens/items';
+import { Lists } from '@app/screens/lists';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-
-import { Items } from '../screens/items';
-import { Lists } from '../screens/lists';
 
 const Stack = createNativeStackNavigator();
 

@@ -1,6 +1,5 @@
+import { API_URL } from '@app/config';
 import axios from 'axios';
-
-import { API_URL } from '../config';
 
 export const restClient = axios.create({
   baseURL: API_URL,
