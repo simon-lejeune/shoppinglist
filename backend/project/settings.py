@@ -28,11 +28,9 @@ SECRET_KEY = env("SECRET_KEY")
 
 DEBUG = env("DEBUG")
 
-ALLOWED_HOSTS = [
-    "127.0.0.1",
-    "localhost",
-    "shoppinglist.slap.agency",
-]
+ALLOWED_HOSTS = ["shoppinglist.slap.agency"]
+if DEBUG:
+    ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
