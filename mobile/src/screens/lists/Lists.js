@@ -142,6 +142,7 @@ const styles = StyleSheet.create({
   },
   buttonsBlock: {
     flex: 0,
+    minWidth: '200px',
     padding: 16,
   },
   title: {

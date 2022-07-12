@@ -4,7 +4,7 @@ import { ShoppingListStack } from '@app/navigation';
 import { NavigationContainer } from '@react-navigation/native';
 import * as React from 'react';
 import { Platform } from 'react-native';
-import { Provider as PaperProvider } from 'react-native-paper';
+import { DefaultTheme, Provider as PaperProvider, useTheme } from 'react-native-paper';
 import { QueryClient, QueryClientProvider, focusManager } from 'react-query';
 
 function onAppStateChange(status) {
@@ -21,10 +21,21 @@ export default function App() {
   useOnlineManager();
   useAppState(onAppStateChange);
 
+  const { colors } = useTheme();
+  const theme = {
+    ...DefaultTheme,
+    roundness: 2,
+    version: 3,
+    colors: {
+      ...colors,
+      primary: '#993955',
+    },
+  };
+
   return (
     <QueryClientProvider client={queryClient}>
       <NavigationContainer>
-        <PaperProvider>
+        <PaperProvider theme={theme}>
           <ShoppingListStack />
         </PaperProvider>
       </NavigationContainer>
