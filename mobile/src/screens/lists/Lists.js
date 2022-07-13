@@ -4,7 +4,15 @@ import { useRefreshOnFocus } from '@app/hooks/useRefreshOnFocus';
 import { StatusBar } from 'expo-status-bar';
 import * as React from 'react';
 import { StyleSheet, View, FlatList, RefreshControl, Text } from 'react-native';
-import { Button, Dialog, FAB, Portal, TextInput, TouchableRipple } from 'react-native-paper';
+import {
+  Button,
+  Dialog,
+  FAB,
+  Paragraph,
+  Portal,
+  TextInput,
+  TouchableRipple,
+} from 'react-native-paper';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
 
 import { GetLists, DeleteList, CreateList } from './api';
@@ -18,6 +26,9 @@ export const Lists = ({ navigation }) => {
   useRefreshOnFocus(refetch);
 
   // List deletion
+  const [deleteDialogVisible, setDeleteDialogVisible] = React.useState(null);
+  const hideDeleteDialog = () => setDeleteDialogVisible(null);
+
   const deleteList = useMutation(DeleteList, {
     onSuccess: () => {
       queryClient.invalidateQueries(['lists']);
@@ -26,22 +37,23 @@ export const Lists = ({ navigation }) => {
   const onDeleteList = React.useCallback(
     (listId) => {
       deleteList.mutate(listId);
+      hideDeleteDialog();
     },
     [deleteList]
   );
 
   // List creation
-  const [visible, setVisible] = React.useState(false);
+  const [createDialogVisible, setCreateDialogVisible] = React.useState(false);
   const [newListName, setNewListName] = React.useState('');
-  const showDialog = () => setVisible(true);
-  const hideDialog = () => setVisible(false);
+  const showCreateDialog = () => setCreateDialogVisible(true);
+  const hideCreateDialog = () => setCreateDialogVisible(false);
   const createList = useMutation(CreateList, {
     onSuccess: () => {
       queryClient.invalidateQueries(['lists']);
     },
   });
   const onCreateDialog = React.useCallback(() => {
-    hideDialog();
+    hideCreateDialog();
     createList.mutate(newListName);
     setNewListName('');
   }, [createList]);
@@ -67,11 +79,11 @@ export const Lists = ({ navigation }) => {
             </View>
             <View style={styles.buttonsBlock}>
               <Button
+                icon="delete"
                 onPress={() => {
-                  onDeleteList(list.id);
-                }}>
-                Delete
-              </Button>
+                  setDeleteDialogVisible(list.id);
+                }}
+              />
             </View>
           </View>
         </TouchableRipple>
@@ -102,14 +114,29 @@ export const Lists = ({ navigation }) => {
         ItemSeparatorComponent={() => <Divider />}
       />
 
-      <FAB icon="plus" style={styles.fab} onPress={showDialog} />
+      <FAB icon="plus" style={styles.fab} onPress={showCreateDialog} />
 
       <Portal>
-        <Dialog visible={visible} onDismiss={hideDialog}>
+        <Dialog visible={deleteDialogVisible} onDismiss={hideDeleteDialog}>
+          <Dialog.Title>Delete a list</Dialog.Title>
+          <Dialog.Content>
+            <Paragraph>Please confirm the deletion</Paragraph>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button mode="text" onPress={hideDeleteDialog}>
+              Cancel
+            </Button>
+            <Button mode="contained" onPress={() => onDeleteList(deleteDialogVisible)}>
+              Delete
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+
+        <Dialog visible={createDialogVisible} onDismiss={hideCreateDialog}>
           <Dialog.Title>Create a list</Dialog.Title>
           <Dialog.Content>
             <TextInput
-              label="my list name"
+              label="My list name"
               value={newListName}
               onChangeText={(text) => setNewListName(text)}
             />
@@ -142,8 +169,8 @@ const styles = StyleSheet.create({
   },
   buttonsBlock: {
     flex: 0,
-    minWidth: '200px',
     padding: 16,
+    marginRight: 30,
   },
   title: {
     fontSize: 18,

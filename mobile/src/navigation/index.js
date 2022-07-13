@@ -16,7 +16,11 @@ export const ShoppingListStack = () => {
 
   return (
     <Stack.Navigator initialRouteName="Lists">
-      <Stack.Screen name="Lists" component={Lists} options={{ headerStyle, headerTitleStyle }} />
+      <Stack.Screen
+        name="SlapList - All"
+        component={Lists}
+        options={{ headerStyle, headerTitleStyle }}
+      />
       <Stack.Screen name="Items" component={Items} options={{ headerStyle, headerTitleStyle }} />
     </Stack.Navigator>
   );
