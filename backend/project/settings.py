@@ -28,7 +28,7 @@ SECRET_KEY = env("SECRET_KEY")
 
 DEBUG = env("DEBUG")
 
-ALLOWED_HOSTS = ["shoppinglist.slap.agency"]
+ALLOWED_HOSTS = ["shoppinglist.slap.agency", "api.shoppinglist.slap.agency"]
 if DEBUG:
     ALLOWED_HOSTS = ["*"]
 
