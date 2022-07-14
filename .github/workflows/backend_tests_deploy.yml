@@ -4,9 +4,11 @@ on:
   pull_request:
     paths:
       - 'backend/**'
+      - '.github/workflows/backend_tests_deploy.yml'
   push:
     paths:
       - 'backend/**'
+      - '.github/workflows/backend_tests_deploy.yml'
     branches:
       - master
 
